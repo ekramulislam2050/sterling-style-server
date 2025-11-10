@@ -2,10 +2,12 @@ require("dotenv").config()
 const express = require("express")
 const app = express()
 const cors = require("cors")
-const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 port = process.env.PROT || 5000
 
+
+// router-------------
+ const userJwt = require("./auth_routers/jwt.router")
 // middleware------------
 app.use(cors())
 app.use(express.json())
@@ -29,44 +31,10 @@ async function run() {
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
-
-        // verify token-----------
-          const verifyToken=async(req,res,next)=>{
-              try{
-                if(!req.headers.authorization){
-                return res.status(401).send("unAuthorized")
-              }
-             const token=req.headers.authorization.split(" ")[1]
-             jwt.verify(token,process.env.JWT_SECRET,(err,decoded)=>{
-                 if(err){
-                    return res.status(402).send("forbidden")
-                 }
-                 req.email=decoded.email
-                 req.decoded=decoded
-                 next()
-             })
-              }catch(err){
-                console.log(err)
-                res.status(500).send("server error while verifying token")
-              }
-          
-          }
-
-          
-
-        // api-----------
-        app.post("/jwt",async (req,res) => {
-              try{
-                 const {email} =req.body
-              if(!email){
-               return res.status(400).send({error:"email require"})
-              }
-              const token=jwt.sign({email},process.env.JWT_SECRET,{expiresIn:"1h"})
-              res.send({token})
-              }catch(err){
-                res.status(500).send({error:"Internal server error"})
-              }
-        })
+        
+        // jwt token---------------
+        app.use("/api/auth/",userJwt)
+        
 
     } finally {
         // Ensures that the client will close when you finish/error
