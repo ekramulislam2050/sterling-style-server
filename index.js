@@ -3,11 +3,12 @@ const express = require("express")
 const app = express()
 const cors = require("cors")
 const { MongoClient, ServerApiVersion } = require('mongodb');
-port = process.env.PROT || 5000
+const port = process.env.PORT || 5000
 
 
 // router-------------
  const userJwt = require("./auth_routers/jwt.router")
+ const postRouter=require("./posts/posts.router")
 // middleware------------
 app.use(cors())
 app.use(express.json())
@@ -31,10 +32,15 @@ async function run() {
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+        // collections--------------
+        const db=client.db("sterling-style-DB")
+       
         
         // jwt token---------------
         app.use("/api/auth/",userJwt)
-        
+        // orders api -----------
+        app.use("/api/orders",postRouter(db))
     
 
     } finally {
