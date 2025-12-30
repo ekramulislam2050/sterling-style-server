@@ -9,6 +9,7 @@ const port = process.env.PORT || 5000
 // router-------------
  const userJwt = require("./auth_routers/jwt.router")
  const postRouter=require("./posts/posts.router")
+ const getRouter=require("./gets/gets.router")
 // middleware------------
 app.use(cors())
 app.use(express.json())
@@ -39,9 +40,10 @@ async function run() {
         
         // jwt token---------------
         app.use("/api/auth/",userJwt)
-        // orders api -----------
-        app.use("/api/orders",postRouter(db))
-    
+        // post orders   -----------
+        app.use("/api/postOrders",postRouter(db))
+        // get orders---------
+        app.use("/api/getOrders",getRouter(db))
 
     } finally {
         // Ensures that the client will close when you finish/error
