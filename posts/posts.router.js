@@ -1,6 +1,22 @@
 const express = require("express")
 
+const addDays=(date,day)=>{
+    const d = new Date(date)
+    d.setDate(d.getDate()+day)
+    return d.toISOString().split("T")[0]
+}
 
+
+const autoGenerateTNA = (orderDate, exFactoryDate) => {
+    const tnaObj = {
+        fabric: { planned: addDays(orderDate, 2), actual: null, status: "pending" },
+        cutting: { planned: addDays(orderDate, 4), actual: null, status: "pending" },
+        sewing: { planned: addDays(orderDate, 6), actual: null, status: "pending" },
+        finishing: { planned: addDays(orderDate, 8), actual: null, status: "pending" },
+        shipment: { planned: exFactoryDate, actual: null, status: "pending" },
+    }
+    return tnaObj
+}
 
 // orders related api----------
 module.exports = (db) => {
@@ -15,6 +31,12 @@ module.exports = (db) => {
                     message: "Ex-factory date cannot be before order date",
                 });
             }
+
+            // TNA-------------
+            order.tna = autoGenerateTNA(order.orderDate, order.exFactoryDate)
+            // create time---------
+            order.createdAt = new Date().toISOString() 
+
             const result = await collectionOfOrders.insertOne(order)
             res.send(result)
         } catch (err) {
