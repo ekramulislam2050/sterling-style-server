@@ -42,8 +42,9 @@ async function run() {
         app.use("/api/auth/",userJwt)
         // post orders   -----------
         app.use("/api/postOrders",postRouter(db))
-        // get orders---------
+        // get orders and specific order by id---------
         app.use("/api/getOrders",getRouter(db))
+        
 
     } finally {
         // Ensures that the client will close when you finish/error
