@@ -7,6 +7,8 @@ module.exports = (db) => {
     router.patch("/:id", async (req, res) => {
         try {
             const id = req.params.id
+             console.log("from backend=",id)
+
             // id validation-------
             if(!ObjectId.isValid(id)){
                return res.status(400).json({
@@ -18,6 +20,8 @@ module.exports = (db) => {
             }
             const query = { _id: new ObjectId(id) }
             const body = req.body
+            console.log("body from backend",body)
+
             // body validation----------
             if(!body || Object.keys(body).length===0){
                 return res.status(400).json({
@@ -25,13 +29,15 @@ module.exports = (db) => {
                     message:"No update data provided"
                 })
             }
+
             const updatedDoc = {
                 $set: {
                     ...body,
                     updateAt: new Date()
                 }
             }
-            const result = await collectionOfOrders.updateOne(query, updatedDoc)
+            const result = await collectionOfOrders.updateOne(query,updatedDoc)
+            console.log("result from backend",result)
             res.send(result)
         }catch(err){
             res.status(500).json({

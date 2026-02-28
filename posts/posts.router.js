@@ -6,48 +6,26 @@ const addDays = (date, day) => {
     return d.toISOString().split("T")[0];
 };
 
-const autoGenerateTNA = (orderDate, exFactoryDate) => {
+const autoGenerateTNA = (orderDate, exFactoryDate, orderQty) => {
     return {
         materials: {
-            fabric: {
-                planned: addDays(orderDate, 2),
-                actual: null,
-                status: "pending",
-            },
-            button: {
-                planned: addDays(orderDate, 3),
-                actual: null,
-                status: "pending",
-            },
-            zipper: {
-                planned: addDays(orderDate, 4),
-                actual: null,
-                status: "pending",
-            },
+            fabric: { plannedDate: addDays(orderDate, 2), actualDate: null, plannedQty: orderQty, actualQty: 0, status: "pending" },
+            button: { plannedDate: addDays(orderDate, 3), actualDate: null, plannedQty: orderQty, actualQty: 0, status: "pending" },
+            zipper: { plannedDate: addDays(orderDate, 4), actualDate: null, plannedQty: orderQty, actualQty: 0, status: "pending" },
         },
 
         production: {
-            cutting: {
-                planned: addDays(orderDate, 6),
-                actual: null,
-                status: "pending",
-            },
-            sewing: {
-                planned: addDays(orderDate, 8),
-                actual: null,
-                status: "pending",
-            },
-            finishing: {
-                planned: addDays(orderDate, 10),
-                actual: null,
-                status: "pending",
-            },
+            cutting: { plannedDate: addDays(orderDate, 6), actualDate: null, plannedQty: orderQty, actualQty: 0, status: "pending", remarks: "" },
+            sewing: { plannedDate: addDays(orderDate, 8), actualDate: null, plannedQty: orderQty, actualQty: 0, status: "pending", remarks: "" },
+            finishing: { plannedDate: addDays(orderDate, 10), actualDate: null, plannedQty: orderQty, actualQty: 0, status: "pending", remarks: "" },
         },
 
         shipment: {
-            planned: exFactoryDate,
-            actual: null,
+            plannedDate: exFactoryDate,
+            actualDate: null,
+            shippedQty: 0,
             status: "pending",
+            remarks: ""
         },
     };
 };
@@ -59,26 +37,22 @@ module.exports = (db) => {
     const collectionOfOrders = db.collection("orders")
     router.post("/", async (req, res) => {
         try {
-            const order = req.body
-            // Validation: Ex-factory date >= order date
+            const order = req.body;
+
             if (new Date(order.exFactoryDate) < new Date(order.orderDate)) {
-                return res.status(400).json({
-                    message: "Ex-factory date cannot be before order date",
-                });
+                return res.status(400).json({ message: "Ex-factory date cannot be before order date" });
             }
 
-            // TNA-------------
-            order.tna = autoGenerateTNA(order.orderDate, order.exFactoryDate)
-            // create time---------
-            order.createdAt = new Date().toISOString()
+            // TNA generation with orderQty
+            order.tna = autoGenerateTNA(order.orderDate, order.exFactoryDate, order.orderQty);
 
-            const result = await collectionOfOrders.insertOne(order)
-            res.send(result)
+            order.createdAt = new Date().toISOString();
+
+            const result = await collectionOfOrders.insertOne(order);
+            res.send(result);
         } catch (err) {
-            res.status(500).json({
-                message: "Failed to create order",
-            });
+            res.status(500).json({ message: "Failed to create order", error: err.message });
         }
-    })
+    });
     return router
 }
