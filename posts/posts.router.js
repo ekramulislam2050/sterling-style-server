@@ -13,13 +13,16 @@ const autoGenerateTNA = (orderDate, exFactoryDate, orderQty) => {
             button: { plannedDate: addDays(orderDate, 3), actualDate: null, plannedQty: orderQty, actualQty: 0, status: "pending" },
             zipper: { plannedDate: addDays(orderDate, 4), actualDate: null, plannedQty: orderQty, actualQty: 0, status: "pending" },
         },
-
+        inventory: {   
+            fabric: { receivedQty: 0, issuedQty: 0 },
+            button: { receivedQty: 0, issuedQty: 0 },
+            zipper: { receivedQty: 0, issuedQty: 0 }
+        },
         production: {
             cutting: { plannedDate: addDays(orderDate, 6), actualDate: null, plannedQty: orderQty, actualQty: 0, status: "pending", remarks: "" },
             sewing: { plannedDate: addDays(orderDate, 8), actualDate: null, plannedQty: orderQty, actualQty: 0, status: "pending", remarks: "" },
             finishing: { plannedDate: addDays(orderDate, 10), actualDate: null, plannedQty: orderQty, actualQty: 0, status: "pending", remarks: "" },
         },
-
         shipment: {
             plannedDate: exFactoryDate,
             actualDate: null,
@@ -29,7 +32,6 @@ const autoGenerateTNA = (orderDate, exFactoryDate, orderQty) => {
         },
     };
 };
-
 
 // orders related api----------
 module.exports = (db) => {
