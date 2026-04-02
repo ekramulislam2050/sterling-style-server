@@ -6,10 +6,14 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const port = process.env.PORT || 5000
 
 
-// router-------------
- const userJwt = require("./auth_routers/jwt.router")
- const postRouter=require("./posts/posts.router")
- const getRouter=require("./gets/gets.router");
+// jwt-router-------------
+const userJwt = require("./auth_routers/jwt.router")
+// post router------------------
+const orderPostRouter = require("./posts/orderPost.router")
+const allWorkersDataPostRouter=require("./posts/allWorkersDataPost.router")
+// get router---------------
+const getRouter = require("./gets/gets.router");
+// patch router----------------
 const patchRouter = require("./patch/patch.router");
 // middleware------------
 app.use(cors())
@@ -36,18 +40,23 @@ async function run() {
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
         // collections--------------
-        const db=client.db("sterling-style-DB")
-       
-        
+        const db = client.db("sterling-style-DB")
+
+
         // jwt token---------------
-        app.use("/api/auth/",userJwt)
+        app.use("/api/auth/", userJwt)
+
         // post orders   -----------
-        app.use("/api/postOrders",postRouter(db))
+        app.use("/api/postOrders", orderPostRouter(db))
+        // post all workers data--------------
+        app.use("/api/postAllWorkersData",allWorkersDataPostRouter(db))
+
         // get orders  ---------
-        app.use("/api/getOrders",getRouter(db))
+        app.use("/api/getOrders", getRouter(db))
+
         // patch order--------
-        app.use("/api/patchOrders",patchRouter(db))
-        
+        app.use("/api/patchOrders", patchRouter(db))
+
 
     } finally {
         // Ensures that the client will close when you finish/error
