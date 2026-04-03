@@ -11,7 +11,8 @@ module.exports = (db) => {
             res.send(result)
         } catch (err) {
             res.status(500).json({
-                message: "Failed to fetch order"
+                message: "Failed to fetch order",
+                error:err.message
             })
         }
     })

@@ -11,11 +11,11 @@ const userJwt = require("./auth_routers/jwt.router")
 
 // post router------------------
 const orderPostRouter = require("./posts/orderPost.router")
-const allWorkersDataPostRouter=require("./posts/allWorkersDataPost.router")
+const allWorkersDataPostRouter = require("./posts/allWorkersDataPost.router")
 
 // get router---------------
 const getOrdersRouter = require("./gets/getOrders.router");
-
+const getAllWorkersData = require("./gets/getAllWorkersData.router")
 // patch router----------------
 const patchRouter = require("./patch/patch.router");
 
@@ -54,10 +54,11 @@ async function run() {
         app.use("/api/postOrders", orderPostRouter(db))
 
         // post all workers data--------------
-        app.use("/api/postAllWorkersData",allWorkersDataPostRouter(db))
+        app.use("/api/postAllWorkersData", allWorkersDataPostRouter(db))
 
         // get orders  ---------
         app.use("/api/getOrders", getOrdersRouter(db))
+        app.use("/api/getAllWorkersData", getAllWorkersData(db))
 
         // patch order--------
         app.use("/api/patchOrders", patchRouter(db))
