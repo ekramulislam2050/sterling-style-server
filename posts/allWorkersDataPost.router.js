@@ -8,7 +8,15 @@ module.exports = (db) => {
     const collectionOfAllWorkersData = db.collection("allWorkersData")
     router.post("/", async (req, res) => {
         try {
-            const workbook = XLSX.readFile(path.join(__dirname,"../ExcelSheetOfWorker/Static-worker-data.xlsx"));
+            // existing worker data----------
+            const existingWorkerData = await collectionOfAllWorkersData.countDocuments()
+            if (existingWorkerData > 0) {
+                return res.status(400).json({ message: "Worker already exist" })
+            }
+
+            // excel file convert to json---------------
+
+            const workbook = XLSX.readFile(path.join(__dirname, "../ExcelSheetOfWorker/Static-worker-data.xlsx"));
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
             const data = XLSX.utils.sheet_to_json(sheet);
@@ -30,8 +38,9 @@ module.exports = (db) => {
                 createdAt: new Date(),
             }));
 
+            //   save to db-----------------
             const result = await collectionOfAllWorkersData.insertMany(formattedWorkers)
-             
+
             res.send(result)
 
         } catch (err) {
