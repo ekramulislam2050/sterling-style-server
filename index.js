@@ -8,13 +8,17 @@ const port = process.env.PORT || 5000
 
 // jwt-router-------------
 const userJwt = require("./auth_routers/jwt.router")
+
 // post router------------------
 const orderPostRouter = require("./posts/orderPost.router")
 const allWorkersDataPostRouter=require("./posts/allWorkersDataPost.router")
+
 // get router---------------
-const getRouter = require("./gets/gets.router");
+const getOrdersRouter = require("./gets/getOrders.router");
+
 // patch router----------------
 const patchRouter = require("./patch/patch.router");
+
 // middleware------------
 app.use(cors())
 app.use(express.json())
@@ -48,11 +52,12 @@ async function run() {
 
         // post orders   -----------
         app.use("/api/postOrders", orderPostRouter(db))
+
         // post all workers data--------------
         app.use("/api/postAllWorkersData",allWorkersDataPostRouter(db))
 
         // get orders  ---------
-        app.use("/api/getOrders", getRouter(db))
+        app.use("/api/getOrders", getOrdersRouter(db))
 
         // patch order--------
         app.use("/api/patchOrders", patchRouter(db))
