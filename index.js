@@ -16,6 +16,7 @@ const allWorkersDataPostRouter = require("./posts/allWorkersDataPost.router")
 // get router---------------
 const getOrdersRouter = require("./gets/getOrders.router");
 const getAllWorkersData = require("./gets/getAllWorkersData.router")
+const getWorkersSummary = require("./gets/getWorkersSummary.router")
 // patch router----------------
 const patchRouter = require("./patch/patch.router");
 
@@ -59,6 +60,9 @@ async function run() {
         // get orders  ---------
         app.use("/api/getOrders", getOrdersRouter(db))
         app.use("/api/getAllWorkersData", getAllWorkersData(db))
+
+        // get for total,active,onLeave,inactive,resigned,departmentsData--------
+        app.use("/api/getWorkersSummary", getWorkersSummary(db))
 
         // patch order--------
         app.use("/api/patchOrders", patchRouter(db))
