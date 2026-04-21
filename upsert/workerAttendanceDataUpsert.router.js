@@ -24,13 +24,10 @@ module.exports = (db) => {
     ensureIndex();
 
     // =========================
-    // 📁 FOLDERS
+    // 📁 WATCH FOLDER
     // =========================
-    const watchDir = path.join(__dirname,"../attendanceOfWorker");
-    const processedDir = path.join(__dirname,"../processed");
-
+    const watchDir = path.join(__dirname, "../attendanceOfWorker");
     fs.mkdirSync(watchDir, { recursive: true });
-    fs.mkdirSync(processedDir, { recursive: true });
 
     // =========================
     // 🧠 HELPERS
@@ -74,8 +71,21 @@ module.exports = (db) => {
     // 🚀 PROCESS FILE
     // =========================
     const processingSet = new Set();
+    const lastProcessedTime = new Map(); // debounce
 
     const processFile = async (filePath) => {
+        const now = Date.now();
+
+        // 🔁 debounce (avoid multiple triggers)
+        if (lastProcessedTime.has(filePath)) {
+            const lastTime = lastProcessedTime.get(filePath);
+            if (now - lastTime < 5000) {
+                return;
+            }
+        }
+
+        lastProcessedTime.set(filePath, now);
+
         if (processingSet.has(filePath)) return;
         processingSet.add(filePath);
 
@@ -88,38 +98,38 @@ module.exports = (db) => {
 
             console.log("📊 Rows:", rawData.length);
 
-            const formattedData = rawData.map((row) => ({
-                workerId: String(row.workerId || "").trim(),
-                name: row.Name || "",
-                date: parseDate(row.Date),
-                checkIn: parseTime(row.CheckIn),
-                checkOut: parseTime(row.CheckOut),
-                status: row.Status || getStatus(parseTime(row.CheckIn)),
-                createdAt: new Date(),
-            }));
+            const operations = [];
 
-            const validData = formattedData.filter(
-                (item) => item.workerId && item.date
-            );
-     
+            for (const row of rawData) {
+                const workerId = String(row.workerId || "").trim();
+                const date = parseDate(row.Date);
 
-            // =========================
-            // 🔥 DB UPSERT
-            // =========================
-            const operations = validData.map((item) => ({
-                updateOne: {
-                    filter: {
-                        workerId: item.workerId,
-                        date: item.date,
+                if (!workerId || !date) continue;
+
+                const checkIn = parseTime(row.CheckIn);
+
+                const item = {
+                    workerId,
+                    name: row.Name || "",
+                    date,
+                    checkIn,
+                    checkOut: parseTime(row.CheckOut),
+                    status: row.Status || getStatus(checkIn),
+                    updatedAt: new Date(),
+                };
+
+                operations.push({
+                    updateOne: {
+                        filter: { workerId, date },
+                        update: { $set: item },
+                        upsert: true,
                     },
-                    update: { $set: item },
-                    upsert: true,
-                },
-            }));
+                });
+            }
+
+            console.log("💾 Writing to DB...");
 
             const chunkSize = 1000;
-
-            console.log("💾 Inserting to DB...");
 
             for (let i = 0; i < operations.length; i += chunkSize) {
                 const chunk = operations.slice(i, i + chunkSize);
@@ -129,16 +139,7 @@ module.exports = (db) => {
                 });
             }
 
-            console.log("✅ Saved to DB:", validData.length);
-
-            // =========================
-            // 📦 MOVE FILE
-            // =========================
-            const fileName = path.basename(filePath);
-            const newPath = path.join(processedDir, fileName);
-
-            await fs.promises.rename(filePath, newPath);
-            console.log("📦 Moved:", fileName);
+            console.log("✅ DB Synced:", operations.length);
 
         } catch (err) {
             console.error("❌ Error:", err.message);
@@ -151,9 +152,9 @@ module.exports = (db) => {
     // 👀 WATCHER
     // =========================
     const startWatcher = () => {
-        console.log("👀 Attendance watcher started...");
+        console.log("👀 Auto Attendance System Started...");
 
-        const watcher = chokidar.watch(watchDir,{
+        const watcher = chokidar.watch(watchDir, {
             persistent: true,
             ignoreInitial: false,
             awaitWriteFinish: {
@@ -162,11 +163,21 @@ module.exports = (db) => {
             },
         });
 
+        // 📥 new file
         watcher.on("add", async (filePath) => {
-            console.log("📂 File detected:", filePath);
             if (!filePath.endsWith(".xlsx")) return;
             if (filePath.includes("~$")) return;
 
+            console.log("📂 New file:", filePath);
+            await processFile(filePath);
+        });
+
+        // ✏️ file updated
+        watcher.on("change", async (filePath) => {
+            if (!filePath.endsWith(".xlsx")) return;
+            if (filePath.includes("~$")) return;
+
+            console.log("✏️ File changed:", filePath);
             await processFile(filePath);
         });
 
@@ -175,6 +186,5 @@ module.exports = (db) => {
         });
     };
 
-    // ✅ IMPORTANT EXPORT
     return { startWatcher };
 };
