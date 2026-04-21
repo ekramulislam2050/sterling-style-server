@@ -7,27 +7,40 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const port = process.env.PORT || 5000
 
 
-// jwt-router-------------
+//===============================
+//       auth router
+//===============================
 const userJwt = require("./auth_routers/jwt.router")
 
-// post router------------------
+//===============================
+//         post router
+//===============================
 const orderPostRouter = require("./posts/orderPost.router")
 const allWorkersDataPostRouter = require("./posts/allWorkersDataPost.router")
 
 
-// get router---------------
+//===============================
+//         get router
+//===============================
 const getOrdersRouter = require("./gets/getOrders.router");
 const getAllWorkersData = require("./gets/getAllWorkersData.router")
 const getWorkersSummary = require("./gets/getWorkersSummary.router")
 
-// patch router----------------
+//===============================
+//         patch router
+//===============================
 const patchRouter = require("./patch/patch.router");
 
+//===============================
+//       even-driven 
+//===============================
 // even-driven backend system for worker,s attendance---------------
 const workerAttendanceWatcher = require("./upsert/workerAttendanceDataUpsert.router")
 
 
-// middleware------------
+//===============================
+//         middleware
+//===============================
 app.use(cors())
 app.use(express.json())
 
@@ -58,6 +71,9 @@ async function run() {
         // collections--------------
         const db = client.db("sterling-style-DB")
 
+        //===============================
+        //       even-driven 
+        //===============================
         // even-driven backend system for worker,s attendance---------------
         if (!watcherStarted) {
             const watcher = workerAttendanceWatcher(db);
@@ -65,25 +81,27 @@ async function run() {
             watcherStarted = true;
         }
 
-        // jwt token---------------
+        //===============================
+        //       auth api
+        //===============================
         app.use("/api/auth/", userJwt)
 
-        // post orders   -----------
+        //===============================
+        //         posts api
+        //===============================
         app.use("/api/postOrders", orderPostRouter(db))
-
-        // post all workers data--------------
         app.use("/api/postAllWorkersData", allWorkersDataPostRouter(db))
 
-
-
-        // get orders  ---------
+        //===============================
+        //       gets api
+        //===============================
         app.use("/api/getOrders", getOrdersRouter(db))
         app.use("/api/getAllWorkersData", getAllWorkersData(db))
-
-        // get for total,active,onLeave,inactive,resigned,departmentsData--------
         app.use("/api/getWorkersSummary", getWorkersSummary(db))
 
-        // patch order--------
+        //===============================
+        //       patch api
+        //===============================
         app.use("/api/patchOrders", patchRouter(db))
 
 
