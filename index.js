@@ -1,3 +1,4 @@
+
 require("dotenv").config()
 const express = require("express")
 const app = express()
@@ -13,17 +14,25 @@ const userJwt = require("./auth_routers/jwt.router")
 const orderPostRouter = require("./posts/orderPost.router")
 const allWorkersDataPostRouter = require("./posts/allWorkersDataPost.router")
 
+
 // get router---------------
 const getOrdersRouter = require("./gets/getOrders.router");
 const getAllWorkersData = require("./gets/getAllWorkersData.router")
 const getWorkersSummary = require("./gets/getWorkersSummary.router")
+
 // patch router----------------
 const patchRouter = require("./patch/patch.router");
+
+// even-driven backend system for worker,s attendance---------------
+const workerAttendanceWatcher = require("./upsert/workerAttendanceDataUpsert.router")
+
 
 // middleware------------
 app.use(cors())
 app.use(express.json())
 
+// variable---------
+let watcherStarted = false
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hhpkb.mongodb.net/?appName=Cluster0`;
 
@@ -36,7 +45,9 @@ const client = new MongoClient(uri, {
     }
 });
 
+
 async function run() {
+
     try {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
@@ -47,6 +58,12 @@ async function run() {
         // collections--------------
         const db = client.db("sterling-style-DB")
 
+        // even-driven backend system for worker,s attendance---------------
+        if (!watcherStarted) {
+            const watcher = workerAttendanceWatcher(db);
+            watcher.startWatcher();
+            watcherStarted = true;
+        }
 
         // jwt token---------------
         app.use("/api/auth/", userJwt)
@@ -56,6 +73,8 @@ async function run() {
 
         // post all workers data--------------
         app.use("/api/postAllWorkersData", allWorkersDataPostRouter(db))
+
+
 
         // get orders  ---------
         app.use("/api/getOrders", getOrdersRouter(db))
@@ -73,12 +92,15 @@ async function run() {
         // await client.close();
     }
 }
-run().catch(console.dir);
+run()
+    .then(() => {
+        app.listen(port, () => {
+            console.log(`sterling-style is running on ${port}`);
+        });
+    })
+    .catch(console.dir);;
 
 
 app.get("/", async (req, res) => {
     res.send("sterling-style is running--------")
-})
-app.listen(port, () => {
-    console.log(`sterling-style is running on ${port}`)
 })
