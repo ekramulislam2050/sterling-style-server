@@ -4,13 +4,6 @@ module.exports = (db) => {
     const router = express.Router();
     const collectionOfWorkerAttendance = db.collection("attendance");
 
-    // ✅ INDEX (run once, safe)
-    const ensureIndexes = async () => {
-        await collectionOfWorkerAttendance.createIndex({ date: -1 });
-        await collectionOfWorkerAttendance.createIndex({ workerId: 1 });
-    };
-    ensureIndexes();
-
     router.get("/", async (req, res) => {
         try {
             // ✅ pagination
@@ -19,29 +12,53 @@ module.exports = (db) => {
             const skip = (page - 1) * limit;
 
             // ✅ filters
-            const { date, workerId } = req.query;
+            const { date, workerId, fromDate, toDate, status } = req.query;
             let query = {};
 
-            if (date) {
-                query.date = date;
+            // ====================
+            // DATE FILTER (RANGE)
+            // ====================
+            if (fromDate && toDate) {
+                query.date = {
+                    $gte: fromDate,
+                    $lte: toDate
+                }
+            } else if (date) {
+                query.date = date
             }
 
+            // ==========================
+            // WORKER SEARCH (PARTIAL)
+            // ==========================
             if (workerId) {
-                query.workerId = workerId;
+                query.workerId = {
+                    $regex:`^${workerId}`,
+                    $options: "i"
+                }
             }
 
-            // ✅ data query with sorting
-            const result = await collectionOfWorkerAttendance
-                .find(query)
-                .sort({ date: -1, _id: -1 }) // 🔥 important
-                .skip(skip)
-                .limit(limit)
-                .toArray();
+            // =======================
+            // STATUS FILTER
+            // =======================
+            if (status) {
+                query.status = status
+            }
 
-            // ✅ total count (with filter)
-            const total = await collectionOfWorkerAttendance.countDocuments(query);
 
-            // ✅ response
+            // ======================
+            // QUERY
+            // =====================
+            const [result, total] = await Promise.all([
+                collectionOfWorkerAttendance
+                    .find(query)
+                    .sort({ date: -1, _id: -1 })
+                    .skip(skip)
+                    .limit(limit)
+                    .toArray(),
+
+                collectionOfWorkerAttendance.countDocuments(query)
+            ])
+
             res.send({
                 data: result,
                 total,

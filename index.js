@@ -3,7 +3,7 @@ require("dotenv").config()
 const express = require("express")
 const app = express()
 const cors = require("cors")
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, Collection } = require('mongodb');
 const port = process.env.PORT || 5000
 
 
@@ -25,7 +25,7 @@ const allWorkersDataPostRouter = require("./posts/allWorkersDataPost.router")
 const getOrdersRouter = require("./gets/getOrders.router");
 const getAllWorkersData = require("./gets/getAllWorkersData.router")
 const getWorkersSummary = require("./gets/getWorkersSummary.router")
-const getAttendanceOfWorker=require("./gets/getAttendanceOfWorker")
+const getAttendanceOfWorker = require("./gets/getAttendanceOfWorker")
 
 //===============================
 //         patch router
@@ -72,6 +72,20 @@ async function run() {
         // collections--------------
         const db = client.db("sterling-style-DB")
 
+        // ✅ INDEX HERE (ONLY ONCE)
+        const attendanceCollection = db.collection("attendance");
+
+        await attendanceCollection.createIndex(
+            {
+                workerId: 1,
+                date: -1,
+                status: 1
+            },
+            {
+                name: "worker_attendance_idx"
+            }
+        );
+
         //===============================
         //       even-driven 
         //===============================
@@ -99,7 +113,7 @@ async function run() {
         app.use("/api/getOrders", getOrdersRouter(db))
         app.use("/api/getAllWorkersData", getAllWorkersData(db))
         app.use("/api/getWorkersSummary", getWorkersSummary(db))
-        app.use("/api/getAttendanceOfWorker",getAttendanceOfWorker(db))
+        app.use("/api/getAttendanceOfWorker", getAttendanceOfWorker(db))
 
         //===============================
         //       patch api
