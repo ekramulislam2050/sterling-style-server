@@ -20,8 +20,8 @@ module.exports = (db) => {
             // ====================
             if (fromDate && toDate) {
                 query.date = {
-                    $gte: fromDate,
-                    $lte: toDate
+                    $gte: new Date(fromDate),
+                    $lte: new Date(toDate)
                 }
             } else if (date) {
                 query.date = date
