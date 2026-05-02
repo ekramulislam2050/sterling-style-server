@@ -24,7 +24,10 @@ module.exports = (db) => {
                     $lte: new Date(toDate)
                 }
             } else if (date) {
-                query.date = date
+                query.date ={
+                    $gte:new Date(date),
+                    $lte:new Date(date+"T23:59:59.999Z")
+                }
             }
 
             // ==========================
@@ -40,7 +43,7 @@ module.exports = (db) => {
             // =======================
             // STATUS FILTER
             // =======================
-            if (status) {
+            if (status && status !=="all") {
                 query.status = status
             }
 
