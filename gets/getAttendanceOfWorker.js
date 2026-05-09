@@ -2,79 +2,16 @@ const express = require("express");
 
 module.exports = (db) => {
     const router = express.Router();
-    const collectionOfWorkerAttendance = db.collection("attendance");
+    const attendanceCollection = db.collection("attendance");
 
     router.get("/", async (req, res) => {
-        try {
-            // ✅ pagination
-            const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 50;
-            const skip = (page - 1) * limit;
+             try{
+                const result=await attendanceCollection.find({}).toArray()
+                res.send(result)
 
-            // ✅ filters
-            const { date, workerId, fromDate, toDate, status } = req.query;
-            let query = {};
+             }catch(err){
 
-            // ====================
-            // DATE FILTER (RANGE)
-            // ====================
-            if (fromDate && toDate) {
-                query.date = {
-                    $gte: new Date(fromDate),
-                    $lte: new Date(toDate)
-                }
-            } else if (date) {
-                query.date ={
-                    $gte:new Date(date),
-                    $lte:new Date(date+"T23:59:59.999Z")
-                }
-            }
-
-            // ==========================
-            // WORKER SEARCH (PARTIAL)
-            // ==========================
-            if (workerId) {
-                query.workerId = {
-                    $regex:`^${workerId}`,
-                    $options: "i"
-                }
-            }
-
-            // =======================
-            // STATUS FILTER
-            // =======================
-            if (status && status !=="all") {
-                query.status = status
-            }
-
-
-            // ======================
-            // QUERY
-            // =====================
-            const [result, total] = await Promise.all([
-                collectionOfWorkerAttendance
-                    .find(query)
-                    .sort({ date: -1, _id: -1 })
-                    .skip(skip)
-                    .limit(limit)
-                    .toArray(),
-
-                collectionOfWorkerAttendance.countDocuments(query)
-            ])
-
-            res.send({
-                data: result,
-                total,
-                page,
-                totalPages: Math.ceil(total / limit),
-            });
-
-        } catch (err) {
-            res.status(500).json({
-                message: "Failed to fetch attendanceOfWorker",
-                error: err.message,
-            });
-        }
+             }
     });
 
     return router;

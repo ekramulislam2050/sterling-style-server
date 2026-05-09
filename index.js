@@ -72,33 +72,6 @@ async function run() {
         // collections--------------
         const db = client.db("sterling-style-DB")
 
-        // =========================
-        // index verification-----------
-        // =========================
-        const attendanceCollection = db.collection("attendance");
-        const index = await attendanceCollection.indexes()
-        const exist = index.find((index) => {
-            return (
-                index.key.workerId === 1 &&
-                index.key.date === -1 &&
-                index.key.status === 1
-            )
-        })
-
-        if (!exist) {
-
-            await attendanceCollection.createIndex(
-                {
-                    workerId: 1,
-                    date: -1,
-                    status: 1
-                },
-                {
-                    name: "worker_attendance_idx"
-                }
-            );
-        }
-
         //===============================
         //       even-driven 
         //===============================
