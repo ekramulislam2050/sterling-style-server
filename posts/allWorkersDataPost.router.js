@@ -5,24 +5,42 @@ const path = require("path")
 // all workers data related api----------------
 module.exports = (db) => {
     const router = express.Router()
-    const collectionOfAllWorkersData = db.collection("allWorkersData")
+    const musterCollectionOfAllWorkersData = db.collection("musterDataOfAllWorkers")
     router.post("/", async (req, res) => {
         try {
             // existing worker data----------
-            const existingWorkerData = await collectionOfAllWorkersData.countDocuments()
-            if (existingWorkerData > 0) {
-                return res.status(400).json({ message: "Worker already exist" })
+            const existingWorkerData = await musterCollectionOfAllWorkersData.findOne()
+
+            if (existingWorkerData) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Workers already imported"
+                })
             }
 
             // excel file convert to json---------------
 
-            const workbook = XLSX.readFile(path.join(__dirname, "../ExcelSheetOfWorker/Static-worker-data.xlsx"));
+            const workbook = XLSX.readFile(path.join(__dirname, "../All_ExcelSheet_Of_Worker/Muster_ExcelSheet_Of_Worker/Static-worker-data.xlsx"));
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
             const data = XLSX.utils.sheet_to_json(sheet);
 
+            // last worker -------------------
+            const lastWorker = await musterCollectionOfAllWorkersData
+                .find()
+                .sort({ workerId: -1 })
+                .limit(1)
+                .toArray()
+
+            let startIndex = 1
+
+            if (lastWorker.length > 0) {
+                startIndex =
+                    parseInt(lastWorker[0].workerId.replace("W", "")) + 1
+            }
+
             const formattedWorkers = data.map((worker, index) => ({
-                workerId: `W${String(index + 1).padStart(4, "0")}`,
+                workerId: `W${String(startIndex + index).padStart(4, "0")}`,
                 name: worker.Name,
                 fatherName: worker["Father Name"],
                 motherName: worker["Mother Name"],
@@ -39,7 +57,7 @@ module.exports = (db) => {
             }));
 
             //   save to db-----------------
-            const result = await collectionOfAllWorkersData.insertMany(formattedWorkers)
+            const result = await musterCollectionOfAllWorkersData.insertMany(formattedWorkers)
 
             res.send(result)
 

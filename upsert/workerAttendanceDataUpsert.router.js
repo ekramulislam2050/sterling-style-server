@@ -26,7 +26,7 @@ module.exports = (db) => {
     // =========================
     // 📁 WATCH FOLDER
     // =========================
-    const watchDir = path.join(__dirname, "../attendanceOfWorker");
+    const watchDir = path.join(__dirname, "../All_ExcelSheet_Of_Worker/Attendance_ExcelSheet_Of_Worker");
     fs.mkdirSync(watchDir, { recursive: true });
 
     // =========================
@@ -94,7 +94,9 @@ module.exports = (db) => {
 
             const workbook = xlsx.readFile(filePath);
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rawData = xlsx.utils.sheet_to_json(sheet);
+            const rawData = xlsx.utils.sheet_to_json(sheet, {
+                defval: "",
+            });;
 
             console.log("📊 Rows:", rawData.length);
 
