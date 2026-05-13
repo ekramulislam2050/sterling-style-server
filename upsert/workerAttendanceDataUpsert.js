@@ -35,11 +35,20 @@ module.exports = (db) => {
     const parseTime = (value) => {
         if (!value) return "";
 
+        // Excel numeric time
         if (typeof value === "number") {
             const totalMinutes = Math.floor(value * 24 * 60);
             const h = Math.floor(totalMinutes / 60);
             const m = totalMinutes % 60;
+
             return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+        }
+
+        // String time
+        const date = new Date(`1970-01-01 ${value}`);
+
+        if (!isNaN(date)) {
+            return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
         }
 
         return value.toString().trim();
@@ -116,7 +125,7 @@ module.exports = (db) => {
                     date,
                     checkIn,
                     checkOut: parseTime(row.CheckOut),
-                    status: row.Status || getStatus(checkIn),
+                    status: row.Status?.toLowerCase() || getStatus(checkIn),
                     updatedAt: new Date(),
                 };
 

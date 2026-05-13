@@ -36,7 +36,8 @@ const patchRouter = require("./patch/patch.router");
 //       even-driven 
 //===============================
 // even-driven backend system for worker,s attendance---------------
-const workerAttendanceWatcher = require("./upsert/workerAttendanceDataUpsert.router")
+const workerAttendanceWatcher = require("./upsert/workerAttendanceDataUpsert")
+const workerLateAttendanceWatcher = require("./upsert/workerLateAttendanceDataUpsert")
 
 
 //===============================
@@ -46,7 +47,8 @@ app.use(cors())
 app.use(express.json())
 
 // variable---------
-let watcherStarted = false
+let attendanceWatcherStarted = false
+let lateWatcherStarted = false
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hhpkb.mongodb.net/?appName=Cluster0`;
 
@@ -76,10 +78,16 @@ async function run() {
         //       even-driven 
         //===============================
         // even-driven backend system for worker,s attendance---------------
-        if (!watcherStarted) {
-            const watcher = workerAttendanceWatcher(db);
-            watcher.startWatcher();
-            watcherStarted = true;
+        if (!attendanceWatcherStarted) {
+            const attendanceWatcher = workerAttendanceWatcher(db);
+            attendanceWatcher.startWatcher();
+            attendanceWatcherStarted = true;
+        }
+        // even-driven backend system for worker,s late attendance---------------
+        if (!lateWatcherStarted) {
+            const lateWatcher = workerLateAttendanceWatcher(db);
+            lateWatcher.startWatcher();
+            lateWatcherStarted = true;
         }
 
         //===============================
