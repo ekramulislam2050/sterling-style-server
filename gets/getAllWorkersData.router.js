@@ -2,7 +2,7 @@ const express=require("express")
 
 module.exports=(db)=>{
     const router=express.Router()
-    const collectionOfAllWorkersData=db.collection("allWorkersData")
+    const collectionOfAllWorkersData=db.collection("musterDataOfAllWorkers")
 
     // get all workers data------------
     router.get("/",async(req,res)=>{

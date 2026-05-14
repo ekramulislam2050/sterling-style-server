@@ -2,7 +2,7 @@ const express = require("express");
 
 module.exports = (db) => {
     const router = express.Router();
-    const allWorkersData = db.collection("allWorkersData");
+    const allWorkersData = db.collection("musterDataOfAllWorkers");
 
     // get workers summary ----------
     router.get("/", async (req, res) => {
