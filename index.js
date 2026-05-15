@@ -16,7 +16,7 @@ const userJwt = require("./auth_routers/jwt.router")
 //         post router
 //===============================
 const orderPostRouter = require("./posts/orderPost.router")
-const allWorkersDataPostRouter = require("./posts/allWorkersDataPost.router")
+
 
 
 //===============================
@@ -35,10 +35,13 @@ const patchRouter = require("./patch/patch.router");
 //===============================
 //       even-driven 
 //===============================
+
+// even-driven backend system for allWorkers-----------------
+const musterWatcherOfAllWorker = require("./upsert/upsertAllWorkersData")
 // even-driven backend system for worker,s attendance---------------
 const workerAttendanceWatcher = require("./upsert/workerAttendanceDataUpsert")
 const workerLateAttendanceWatcher = require("./upsert/workerLateAttendanceDataUpsert")
-const workerAbsentWatcher=require("./upsert/workerAbsentDataUpsert")
+const workerAbsentWatcher = require("./upsert/workerAbsentDataUpsert")
 
 
 //===============================
@@ -48,9 +51,10 @@ app.use(cors())
 app.use(express.json())
 
 // variable---------
+let musterWatcherStarted = false
 let attendanceWatcherStarted = false
 let lateWatcherStarted = false
-let absentWatcherStarted= false
+let absentWatcherStarted = false
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hhpkb.mongodb.net/?appName=Cluster0`;
 
@@ -79,6 +83,13 @@ async function run() {
         //===============================
         //       even-driven 
         //===============================
+
+        // even-driven backend system for muster data of all worker-------
+        if (!musterWatcherStarted) {
+            const musterWatcher = musterWatcherOfAllWorker(db)
+            musterWatcher.startWatcher()
+            musterWatcherStarted = true
+        }
         // even-driven backend system for worker,s attendance---------------
         if (!attendanceWatcherStarted) {
             const attendanceWatcher = workerAttendanceWatcher(db);
@@ -107,7 +118,7 @@ async function run() {
         //         posts api
         //===============================
         app.use("/api/postOrders", orderPostRouter(db))
-        app.use("/api/postAllWorkersData", allWorkersDataPostRouter(db))
+
 
         //===============================
         //       gets api
