@@ -7,17 +7,9 @@ module.exports=(db)=>{
     // get all workers data------------
     router.get("/",async(req,res)=>{
         try{
-            const page = parseInt(req.query.page) || 1
-            const limit = parseInt(req.query.limit) ||50
-            const skip = (page-1)*limit
+             const result = await collectionOfAllWorkersData.find({}).toArray()
 
-            const total=await collectionOfAllWorkersData.countDocuments()
-            const workers = await collectionOfAllWorkersData.find({})
-            .skip(skip)
-            .limit(limit)
-            .toArray()
-
-              res.json({total,page,limit,workers})
+              res.send(result)
         }catch(err){
             res.status(500).json({message:"Failed to fetch all workers data",error:err.message})
         }
