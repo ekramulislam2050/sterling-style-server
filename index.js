@@ -26,6 +26,7 @@ const getOrdersRouter = require("./gets/getOrders.router");
 const getAllWorkersData = require("./gets/getAllWorkersData.router")
 const getWorkersSummary = require("./gets/getWorkersSummary.router")
 const getWorkerDetailsById = require("./gets/getsWorkerDetailsById.router")
+const getAllAttendanceData = require("./gets/getAllAttendanceData.router")
 //===============================
 //         patch router
 //===============================
@@ -125,8 +126,8 @@ async function run() {
         app.use("/api/getOrders", getOrdersRouter(db))
         app.use("/api/getAllWorkersData", getAllWorkersData(db))
         app.use("/api/getWorkersSummary", getWorkersSummary(db))
-        app.use("/api/getWorkerDetailsById",getWorkerDetailsById(db))
-
+        app.use("/api/getWorkerDetailsById", getWorkerDetailsById(db))
+        app.use("/api/getAllAttendanceData", getAllAttendanceData(db))
         //===============================
         //       patch api
         //===============================
